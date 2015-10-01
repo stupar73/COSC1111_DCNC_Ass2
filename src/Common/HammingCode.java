@@ -93,10 +93,7 @@ public final class HammingCode
             // Only looking at set bits
             if(bits[i] != -1)
             {
-                /*
-                 * Take current bit position index (array index + 1) and convert
-                 * to binary
-                 */
+                // Convert current bit position index to binary
                 int bitPos = i + 1;
                 String bitPosBinary = Integer.toBinaryString(bitPos);
 
@@ -125,9 +122,50 @@ public final class HammingCode
      */
     public static int checkHammingCode(int[] message)
     {
-        // TODO
+        int parityCount = 0;
 
-        return -1;
+        // Determine number of parity bits
+        while(Math.pow(2, parityCount) <= message.length)
+        {
+            parityCount++;
+        }
+
+        int[] parityBits = new int[parityCount];
+        // Binary value of error location
+        String errorLocBin = "";
+
+        for(int power = 0; power < parityCount; power++)
+        {
+            for(int i = 0; i < message.length; i++)
+            {
+                // Convert current bit position index to binary
+                int bitPos = i + 1;
+                String bitPosBinary = Integer.toBinaryString(bitPos);
+
+                /*
+                 * If the bit at 2^(power) of bitPosBinary is 1, then it
+                 * factors into the parity calculation
+                 */
+                int x = ((Integer.parseInt(bitPosBinary))
+                        / ((int) Math.pow(10, power))) % 10;
+                if(x == 1 && message[i] == 1)
+                {
+                    parityBits[power] ^= 1;
+                }
+            }
+            errorLocBin = parityBits[power] + errorLocBin;
+        }
+
+        int errorLocation = Integer.parseInt(errorLocBin, 2);
+
+        if(errorLocation == 0)
+        {
+            // No error
+            return -1;
+        }
+
+        // Return array index of bit error
+        return errorLocation - 1;
     }
 
     public static void main(String[] args)
@@ -173,6 +211,24 @@ public final class HammingCode
             System.out.print(message[message.length - i - 1]);
         }
         System.out.println();
+
+        System.out.println("Checking hamming code...");
+        int errorLocation = checkHammingCode(message);
+        if(errorLocation < 0)
+        {
+            System.out.println("No error detected!");
+        }
+        else
+        {
+            System.out.println("Error detected at bit position "
+                    + (errorLocation + 1));
+            message[errorLocation] ^= 1;
+            System.out.print("Corrected message: ");
+            for(int i = 0; i < message.length; i++)
+            {
+                System.out.print(message[message.length - i - 1]);
+            }
+        }
 
         sc.close();
     }
