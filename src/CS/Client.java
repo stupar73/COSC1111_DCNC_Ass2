@@ -1,9 +1,9 @@
 package CS;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
@@ -34,10 +34,11 @@ public class Client
 
     public void sendMessage(int[] message) throws IOException
     {
-        DataOutputStream out = new DataOutputStream(
+        ObjectOutputStream out = new ObjectOutputStream(
                 client.getOutputStream());
 
-        // TODO Send message to server
+        // Send int array as object
+        out.writeObject(message);
     }
 
     public String receiveMessage() throws IOException
@@ -54,33 +55,47 @@ public class Client
         BufferedReader userIn = new BufferedReader(
                 new InputStreamReader(System.in));
 
+        // Attempt to connect to server
         try
         {
             client.connect();
-
-            // Message should be 11 bits (7 bits data, 4 bits parity)
-            System.out.print("Enter data: ");
-
-            String dataStr = userIn.readLine();
-            dataStr = dataStr.replaceAll(" ", "");
-
-            int[] data = new int[dataStr.length()];
-            for(int i = 0; i < dataStr.length(); i++)
-            {
-                data[i] = Character.getNumericValue(dataStr.charAt(i));
-            }
-
-            int[] message = HammingCode.generateHammingCode(data);
-
-            // TODO Send message to server
         }
-        catch(UnknownHostException e)
+        catch(Exception e)
         {
-            System.err.println("Failed! Host unknown");
+            System.err.println("Failed! Unable to connect to server");
+            return;
+        }
+
+        // Get data from user and encode using Hamming code
+        String dataStr = null;
+        try
+        {
+            System.out.print("Enter data: ");
+            dataStr = userIn.readLine();
+            dataStr = dataStr.replaceAll(" ", "");
         }
         catch(IOException e)
         {
-            System.err.println("Failed! Server may be down");
+            // Should never happen?
+            e.printStackTrace();
+        }
+
+        int[] data = new int[dataStr.length()];
+        for(int i = 0; i < dataStr.length(); i++)
+        {
+            data[i] = Character.getNumericValue(dataStr.charAt(i));
+        }
+
+        int[] message = HammingCode.generateHammingCode(data);
+
+        try
+        {
+            client.sendMessage(message);
+        }
+        catch(IOException e)
+        {
+            // Should never happen?
+            e.printStackTrace();
         }
     }
 }
