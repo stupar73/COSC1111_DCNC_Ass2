@@ -21,7 +21,7 @@ public final class HammingCode
      *
      * @param data
      *            Data bits from which to calculate full Hamming code
-     * @return Fill Hamming code for given {@code data}.
+     * @return Full Hamming code for given {@code data}.
      */
     public static int[] generateHammingCode(int[] data)
     {
@@ -81,7 +81,7 @@ public final class HammingCode
      *            Full Hamming code array
      * @param power
      *            Bit position of parity bit being calculated
-     * @return Parity bit for position {@code power} in Hamming code array\
+     * @return Parity bit for position {@code power} in Hamming code array
      *         {@code bits}.
      */
     public static int computeParityBit(int[] bits, int power)
@@ -117,7 +117,7 @@ public final class HammingCode
      * Checks the validity of a message encoded using Hamming code.
      *
      * @param message
-     *            A message in an int array containing both data and parity bits
+     *            Message in an int array containing both data and parity bits
      * @return Array index of bit error, -1 if no error.
      */
     public static int checkHammingCode(int[] message)
@@ -168,6 +168,34 @@ public final class HammingCode
         return errorLocation - 1;
     }
 
+    /**
+     * Removes parity bits from {@code message} and return data bits
+     *
+     * @param message
+     *            Message in an int array containing both data and parity bits
+     * @return Data contained in {@code message} encoded using Hamming code
+     */
+    public static int[] removeParity(int[] message)
+    {
+        // TODO
+        return null;
+    }
+
+    /**
+     * Print a message in an int array to {@code System.out}
+     *
+     * @param message
+     *            Message in an int array
+     */
+    public static void printMessage(int[] message)
+    {
+        for(int i = message.length - 1; i >= 0; i--)
+        {
+            System.out.print(message[i] + " ");
+        }
+        System.out.println();
+    }
+
     public static void main(String[] args)
     {
         /*
@@ -192,11 +220,7 @@ public final class HammingCode
         int[] message = generateHammingCode(data);
 
         System.out.print("Full message (with hamming parity): ");
-        for(int i = 0; i < message.length; i++)
-        {
-            System.out.print(message[message.length - i - 1]);
-        }
-        System.out.println();
+        printMessage(message);
 
         // Random chance for a one-bit error
         if(Math.random() <= ERROR_CHANCE)
@@ -206,11 +230,7 @@ public final class HammingCode
         }
 
         System.out.print("After random error chance: ");
-        for(int i = 0; i < message.length; i++)
-        {
-            System.out.print(message[message.length - i - 1]);
-        }
-        System.out.println();
+        printMessage(message);
 
         System.out.println("Checking hamming code...");
         int errorLocation = checkHammingCode(message);
@@ -224,10 +244,7 @@ public final class HammingCode
                     + (errorLocation + 1));
             message[errorLocation] ^= 1;
             System.out.print("Corrected message: ");
-            for(int i = 0; i < message.length; i++)
-            {
-                System.out.print(message[message.length - i - 1]);
-            }
+            printMessage(message);
         }
 
         sc.close();
