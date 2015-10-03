@@ -7,23 +7,23 @@ import java.util.Scanner;
  * <br />
  * This class should not be instantiated.
  */
-public final class HammingCode
+public final class SECDED
 {
     public static final double ERROR_CHANCE = 0.5;
 
-    private HammingCode()
+    private SECDED()
     {
         // Throws exception if instantiation of class is attempted
     }
 
     /**
-     * Generate Hamming code for given {@code data}.
+     * Generate SECDED code for given {@code data}.
      *
      * @param data
      *            Data bits from which to calculate full Hamming code
-     * @return Full Hamming code for given {@code data}.
+     * @return Full SECDED code for given {@code data}.
      */
-    public static int[] generateHammingCode(int[] data)
+    public static int[] encode(int[] data)
     {
         int i = 0, parityCount = 0;
 
@@ -45,32 +45,35 @@ public final class HammingCode
             }
         }
 
-        int[] result = new int[data.length + parityCount];
+        int[] message = new int[data.length + parityCount];
 
         int j = 0, k = 0;
-        for(i = 1; i <= result.length; i++)
+        for(i = 1; i <= message.length; i++)
         {
             if(Math.pow(2, j) == i)
             {
                 // Found parity bit location, initialise to -1 to signify
                 // it's not set
-                result[i - 1] = -1;
+                message[i - 1] = -1;
                 j++;
             }
             else
             {
                 // Data bit location, copy from input data array
-                result[k + j] = data[k++];
+                message[k + j] = data[k++];
             }
         }
 
         // Set parity bits
         for(i = 0; i < parityCount; i++)
         {
-            result[((int) Math.pow(2, i)) - 1] = computeParityBit(result, i);
+            message[((int) Math.pow(2, i)) - 1] = computeParityBit(message, i);
         }
+        
+        // Add SECDED bit
+        message = computeSECDEDBit(message);
 
-        return result;
+        return message;
     }
 
     /**
@@ -84,7 +87,7 @@ public final class HammingCode
      * @return Parity bit for position {@code power} in Hamming code array
      *         {@code bits}.
      */
-    public static int computeParityBit(int[] bits, int power)
+    private static int computeParityBit(int[] bits, int power)
     {
         int parity = 0;
 
@@ -111,6 +114,36 @@ public final class HammingCode
         }
 
         return parity;
+    }
+    
+    /**
+     * Compute overall SECDED parity bit given an array {@code bits} encoded
+     * with Hamming code and return the new message with SECDED bit
+     * 
+     * @param bits Full Hamming code array
+     * @return {@code bits} array with SECDED parity bit added
+     */
+    private static int[] computeSECDEDBit(int[] bits)
+    {
+        int SECDEDbit = 0;
+        // Calculate SECDED parity bit
+        for (int i = 0; i < bits.length; i++)
+        {
+            SECDEDbit ^= bits[i];
+        }
+        
+        int[] message = new int[bits.length+1];
+        
+        // Add SECDED bit to message array
+        message[0] = SECDEDbit;
+        
+        // Copy input bits to message array
+        for (int i = 1; i < message.length; i++)
+        {
+            message[i] = bits[i-1];
+        }
+        
+        return message;
     }
 
     /**
@@ -217,7 +250,7 @@ public final class HammingCode
             data[i] = Character.getNumericValue(dataStr.charAt(i));
         }
 
-        int[] message = generateHammingCode(data);
+        int[] message = encode(data);
 
         System.out.print("Full message (with hamming parity): ");
         printMessage(message);

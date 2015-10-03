@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import Common.HammingCode;
+import Common.SECDED;
 
 public class Server
 {
@@ -78,7 +78,7 @@ public class Server
         {
             message = server.receiveMessage(client);
             System.out.print("Client: ");
-            HammingCode.printMessage(message);
+            SECDED.printMessage(message);
         }
         catch(ClassNotFoundException | IOException e)
         {
@@ -87,7 +87,7 @@ public class Server
         }
 
         // Check message was received with no error
-        int errorLocation = HammingCode.checkHammingCode(message);
+        int errorLocation = SECDED.checkHammingCode(message);
         if(errorLocation < 0)
         {
             System.out.println("No error detected!");
