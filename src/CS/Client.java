@@ -14,7 +14,7 @@ public class Client
     private static final String HOSTNAME = "localhost";
     private static final int PORT = 9090;
 
-    private Socket client;
+    private Socket clientSocket;
     private String hostname;
     private int port;
 
@@ -24,78 +24,81 @@ public class Client
         this.port = port;
     }
 
+    /**
+     * Connects to server specified by the value of {@code hostname} and
+     * {@code port} for this Client
+     *
+     * @throws UnknownHostException
+     * @throws IOException
+     */
     public void connect() throws UnknownHostException, IOException
     {
         System.out.print("Attempting to connect to " + hostname + ":" + port +
                 "... ");
-        client = new Socket(hostname, port);
+        clientSocket = new Socket(hostname, port);
         System.out.println("Connection established");
     }
 
+    /**
+     * Sends {@code message} to the server in {@code clientSocket}
+     *
+     * @param message
+     *            Message to be sent
+     * @throws IOException
+     */
     public void sendMessage(int[] message) throws IOException
     {
         ObjectOutputStream out = new ObjectOutputStream(
-                client.getOutputStream());
+                clientSocket.getOutputStream());
 
         // Send int array as object
         out.writeObject(message);
     }
 
+    /**
+     * Reads incoming message from server in {@code clientSocket} and returns it
+     *
+     * @return Message read from server
+     * @throws IOException
+     */
     public String receiveMessage() throws IOException
     {
         BufferedReader serverIn = new BufferedReader(
-                new InputStreamReader(client.getInputStream()));
+                new InputStreamReader(clientSocket.getInputStream()));
 
         return serverIn.readLine();
     }
 
     public static void main(String[] args)
     {
-        Client client = new Client(HOSTNAME, PORT);
-        BufferedReader userIn = new BufferedReader(
-                new InputStreamReader(System.in));
-
-        // Attempt to connect to server
         try
         {
+            Client client = new Client(HOSTNAME, PORT);
+            BufferedReader userIn = new BufferedReader(
+                    new InputStreamReader(System.in));
+
+            // Attempt to connect to server
             client.connect();
-        }
-        catch(Exception e)
-        {
-            System.err.println("Failed! Unable to connect to server");
-            return;
-        }
 
-        // Get data from user and encode using Hamming code
-        String dataStr = null;
-        try
-        {
+            // Get data from user and encode using Hamming code
             System.out.print("Enter data: ");
-            dataStr = userIn.readLine();
+            String dataStr = userIn.readLine();
             dataStr = dataStr.replaceAll(" ", "");
-        }
-        catch(IOException e)
-        {
-            // Should never happen?
-            e.printStackTrace();
-        }
 
-        int[] data = new int[dataStr.length()];
-        for(int i = 0; i < dataStr.length(); i++)
-        {
-            data[i] = Character.getNumericValue(dataStr.charAt(i));
-        }
+            int[] data = new int[dataStr.length()];
+            for (int i = 0; i < dataStr.length(); i++)
+            {
+                data[i] = Character.getNumericValue(dataStr.charAt(i));
+            }
 
-        int[] message = SECDED.encode(data);
+            int[] message = SECDED.encode(data);
 
-        try
-        {
             client.sendMessage(message);
         }
-        catch(IOException e)
+        catch (Exception e)
         {
-            // Should never happen?
-            e.printStackTrace();
+            System.out.println(e.getMessage());
+            return;
         }
     }
 }

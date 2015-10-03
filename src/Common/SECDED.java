@@ -28,14 +28,14 @@ public final class SECDED
         int i = 0, parityCount = 0;
 
         // Calculate the number of parity bits required
-        while(i < data.length)
+        while (i < data.length)
         {
             /*
              * 2^(parity count) must equal the current position, where the
              * current position is (bits traversed + num parity bits + 1)
              * (+1 required for array index offset)
              */
-            if(Math.pow(2, parityCount) == i + parityCount + 1)
+            if (Math.pow(2, parityCount) == i + parityCount + 1)
             {
                 parityCount++;
             }
@@ -48,9 +48,9 @@ public final class SECDED
         int[] message = new int[data.length + parityCount];
 
         int j = 0, k = 0;
-        for(i = 1; i <= message.length; i++)
+        for (i = 1; i <= message.length; i++)
         {
-            if(Math.pow(2, j) == i)
+            if (Math.pow(2, j) == i)
             {
                 // Found parity bit location, initialise to -1 to signify
                 // it's not set
@@ -65,11 +65,11 @@ public final class SECDED
         }
 
         // Set parity bits
-        for(i = 0; i < parityCount; i++)
+        for (i = 0; i < parityCount; i++)
         {
             message[((int) Math.pow(2, i)) - 1] = computeParityBit(message, i);
         }
-        
+
         // Add SECDED bit
         message = computeSECDEDBit(message);
 
@@ -91,10 +91,10 @@ public final class SECDED
     {
         int parity = 0;
 
-        for(int i = 0; i < bits.length; i++)
+        for (int i = 0; i < bits.length; i++)
         {
             // Only looking at set bits
-            if(bits[i] != -1)
+            if (bits[i] != -1)
             {
                 // Convert current bit position index to binary
                 int bitPos = i + 1;
@@ -106,7 +106,7 @@ public final class SECDED
                  */
                 int x = ((Integer.parseInt(bitPosBinary))
                         / ((int) Math.pow(10, power))) % 10;
-                if(x == 1 && bits[i] == 1)
+                if (x == 1 && bits[i] == 1)
                 {
                     parity ^= 1;
                 }
@@ -115,12 +115,13 @@ public final class SECDED
 
         return parity;
     }
-    
+
     /**
      * Compute overall SECDED parity bit given an array {@code bits} encoded
      * with Hamming code and return the new message with SECDED bit
-     * 
-     * @param bits Full Hamming code array
+     *
+     * @param bits
+     *            Full Hamming code array
      * @return {@code bits} array with SECDED parity bit added
      */
     private static int[] computeSECDEDBit(int[] bits)
@@ -131,18 +132,18 @@ public final class SECDED
         {
             SECDEDbit ^= bits[i];
         }
-        
-        int[] message = new int[bits.length+1];
-        
+
+        int[] message = new int[bits.length + 1];
+
         // Add SECDED bit to message array
         message[0] = SECDEDbit;
-        
+
         // Copy input bits to message array
         for (int i = 1; i < message.length; i++)
         {
-            message[i] = bits[i-1];
+            message[i] = bits[i - 1];
         }
-        
+
         return message;
     }
 
@@ -158,7 +159,7 @@ public final class SECDED
         int parityCount = 0;
 
         // Determine number of parity bits
-        while(Math.pow(2, parityCount) <= message.length)
+        while (Math.pow(2, parityCount) <= message.length)
         {
             parityCount++;
         }
@@ -167,9 +168,9 @@ public final class SECDED
         // Binary value of error location
         String errorLocBin = "";
 
-        for(int power = 0; power < parityCount; power++)
+        for (int power = 0; power < parityCount; power++)
         {
-            for(int i = 0; i < message.length; i++)
+            for (int i = 0; i < message.length; i++)
             {
                 // Convert current bit position index to binary
                 int bitPos = i + 1;
@@ -181,7 +182,7 @@ public final class SECDED
                  */
                 int x = ((Integer.parseInt(bitPosBinary))
                         / ((int) Math.pow(10, power))) % 10;
-                if(x == 1 && message[i] == 1)
+                if (x == 1 && message[i] == 1)
                 {
                     parityBits[power] ^= 1;
                 }
@@ -191,7 +192,7 @@ public final class SECDED
 
         int errorLocation = Integer.parseInt(errorLocBin, 2);
 
-        if(errorLocation == 0)
+        if (errorLocation == 0)
         {
             // No error
             return -1;
@@ -222,7 +223,7 @@ public final class SECDED
      */
     public static void printMessage(int[] message)
     {
-        for(int i = message.length - 1; i >= 0; i--)
+        for (int i = message.length - 1; i >= 0; i--)
         {
             System.out.print(message[i] + " ");
         }
@@ -245,7 +246,7 @@ public final class SECDED
         dataStr = dataStr.replaceAll(" ", "");
 
         int[] data = new int[dataStr.length()];
-        for(int i = 0; i < dataStr.length(); i++)
+        for (int i = 0; i < dataStr.length(); i++)
         {
             data[i] = Character.getNumericValue(dataStr.charAt(i));
         }
@@ -256,7 +257,7 @@ public final class SECDED
         printMessage(message);
 
         // Random chance for a one-bit error
-        if(Math.random() <= ERROR_CHANCE)
+        if (Math.random() <= ERROR_CHANCE)
         {
             // Flip a random bit
             message[(int) (Math.random() * message.length)] ^= 1;
@@ -267,7 +268,7 @@ public final class SECDED
 
         System.out.println("Checking hamming code...");
         int errorLocation = checkHammingCode(message);
-        if(errorLocation < 0)
+        if (errorLocation < 0)
         {
             System.out.println("No error detected!");
         }

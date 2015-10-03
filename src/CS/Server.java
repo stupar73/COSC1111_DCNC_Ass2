@@ -54,7 +54,7 @@ public class Server
         {
             server.start();
         }
-        catch(IOException e)
+        catch (IOException e)
         {
             System.err.println("Unable to start server!");
             return;
@@ -66,7 +66,7 @@ public class Server
         {
             client = server.waitForClient();
         }
-        catch(IOException e)
+        catch (IOException e)
         {
             System.err.println("Error waiting for client!");
             return;
@@ -80,7 +80,7 @@ public class Server
             System.out.print("Client: ");
             SECDED.printMessage(message);
         }
-        catch(ClassNotFoundException | IOException e)
+        catch (ClassNotFoundException | IOException e)
         {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -88,7 +88,7 @@ public class Server
 
         // Check message was received with no error
         int errorLocation = SECDED.checkHammingCode(message);
-        if(errorLocation < 0)
+        if (errorLocation < 0)
         {
             System.out.println("No error detected!");
             // TODO Remove parity bits and print data
