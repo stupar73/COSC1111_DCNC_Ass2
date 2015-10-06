@@ -7,21 +7,21 @@ import java.util.Scanner;
  * <br />
  * This class should not be instantiated.
  */
-public final class SECDED
+public final class HammingCode
 {
     public static final double ERROR_CHANCE = 0.5;
 
-    private SECDED()
+    private HammingCode()
     {
         // Throws exception if instantiation of class is attempted
     }
 
     /**
-     * Generate SECDED code for given {@code data}.
+     * Generate Hamming code for given {@code data}.
      *
      * @param data
-     *            Data bits from which to calculate full Hamming code
-     * @return Full SECDED code for given {@code data}.
+     *            data bits from which to calculate full Hamming code
+     * @return full Hamming code for given {@code data}
      */
     public static int[] encode(int[] data)
     {
@@ -47,20 +47,19 @@ public final class SECDED
 
         int[] message = new int[data.length + parityCount];
 
-        int j = 0, k = 0;
+        int numParityBits = 0, numDataBits = 0;
         for (i = 1; i <= message.length; i++)
         {
-            if (Math.pow(2, j) == i)
+            if (Math.pow(2, numParityBits) == i)
             {
-                // Found parity bit location, initialise to -1 to signify
-                // it's not set
-                message[i - 1] = -1;
-                j++;
+                // Found parity bit location, initialise to 0
+                message[i - 1] = 0;
+                numParityBits++;
             }
             else
             {
                 // Data bit location, copy from input data array
-                message[k + j] = data[k++];
+                message[numDataBits + numParityBits] = data[numDataBits++];
             }
         }
 
@@ -70,46 +69,29 @@ public final class SECDED
             message[((int) Math.pow(2, i)) - 1] = computeParityBit(message, i);
         }
 
-        // Add SECDED bit
-        message = computeSECDEDBit(message);
-
         return message;
     }
 
     /**
      * Calculates parity bit at bit position {@code power} for Hamming code
-     * array {@code bits}.
+     * array {@code bits}
      *
      * @param bits
-     *            Full Hamming code array
+     *            full Hamming code array
      * @param power
-     *            Bit position of parity bit being calculated
-     * @return Parity bit for position {@code power} in Hamming code array
-     *         {@code bits}.
+     *            bit position of parity bit being calculated
+     * @return parity bit for position {@code power} in Hamming code array
+     *         {@code bits}
      */
     private static int computeParityBit(int[] bits, int power)
     {
         int parity = 0;
 
-        for (int i = 0; i < bits.length; i++)
+        for (int i = 1; i <= bits.length; i++)
         {
-            // Only looking at set bits
-            if (bits[i] != -1)
+            if ((i & (int) Math.pow(2, power)) > 0)
             {
-                // Convert current bit position index to binary
-                int bitPos = i + 1;
-                String bitPosBinary = Integer.toBinaryString(bitPos);
-
-                /*
-                 * If the bit at 2^(power) of bitPosBinary is 1, then it
-                 * factors into the parity calculation
-                 */
-                int x = ((Integer.parseInt(bitPosBinary))
-                        / ((int) Math.pow(10, power))) % 10;
-                if (x == 1 && bits[i] == 1)
-                {
-                    parity ^= 1;
-                }
+                parity ^= bits[i - 1];
             }
         }
 
@@ -117,44 +99,9 @@ public final class SECDED
     }
 
     /**
-     * Compute overall SECDED parity bit given an array {@code bits} encoded
-     * with Hamming code and return the new message with SECDED bit
-     *
-     * @param bits
-     *            Full Hamming code array
-     * @return {@code bits} array with SECDED parity bit added
+     * TODO
      */
-    private static int[] computeSECDEDBit(int[] bits)
-    {
-        int SECDEDbit = 0;
-        // Calculate SECDED parity bit
-        for (int i = 0; i < bits.length; i++)
-        {
-            SECDEDbit ^= bits[i];
-        }
-
-        int[] message = new int[bits.length + 1];
-
-        // Add SECDED bit to message array
-        message[0] = SECDEDbit;
-
-        // Copy input bits to message array
-        for (int i = 1; i < message.length; i++)
-        {
-            message[i] = bits[i - 1];
-        }
-
-        return message;
-    }
-
-    /**
-     * Checks the validity of a message encoded using Hamming code.
-     *
-     * @param message
-     *            Message in an int array containing both data and parity bits
-     * @return Array index of bit error, -1 if no error.
-     */
-    public static int checkHammingCode(int[] message)
+    private static int determineNumParityBits(int[] message)
     {
         int parityCount = 0;
 
@@ -164,9 +111,28 @@ public final class SECDED
             parityCount++;
         }
 
+        return parityCount;
+    }
+
+    /**
+     * Checks the validity of a message encoded using Hamming code.
+     *
+     * @param message
+     *            the message in an int array containing both data and parity
+     *            bits
+     * @return
+     *         <ul>
+     *         <li>if no error: -1</li>
+     *         <li>if single bit error: array index of error</li>
+     *         </ul>
+     */
+    public static int checkHammingCode(int[] message)
+    {
+        int parityCount = determineNumParityBits(message);
+
         int[] parityBits = new int[parityCount];
         // Binary value of error location
-        String errorLocBin = "";
+        String syndrome = "";
 
         for (int power = 0; power < parityCount; power++)
         {
@@ -184,13 +150,13 @@ public final class SECDED
                         / ((int) Math.pow(10, power))) % 10;
                 if (x == 1 && message[i] == 1)
                 {
-                    parityBits[power] ^= 1;
+                    parityBits[power] = (parityBits[power] + 1) % 2;
                 }
             }
-            errorLocBin = parityBits[power] + errorLocBin;
+            syndrome = parityBits[power] + syndrome;
         }
 
-        int errorLocation = Integer.parseInt(errorLocBin, 2);
+        int errorLocation = Integer.parseInt(syndrome, 2);
 
         if (errorLocation == 0)
         {
@@ -198,7 +164,7 @@ public final class SECDED
             return -1;
         }
 
-        // Return array index of bit error
+        // Else, single bit error - return array index of bit error
         return errorLocation - 1;
     }
 
@@ -206,20 +172,42 @@ public final class SECDED
      * Removes parity bits from {@code message} and return data bits
      *
      * @param message
-     *            Message in an int array containing both data and parity bits
-     * @return Data contained in {@code message} encoded using Hamming code
+     *            message in an int array containing both data and parity bits
+     * @return data contained in {@code message} encoded using Hamming code
      */
     public static int[] removeParity(int[] message)
     {
-        // TODO
-        return null;
+        int parityCount = determineNumParityBits(message);
+        int[] data = new int[message.length - parityCount];
+        int dataBitsAdded = 0;
+
+        for (int i = 0; i < message.length; i++)
+        {
+            if (!isPowerOfTwo(i + 1))
+            {
+                data[dataBitsAdded++] = message[i];
+            }
+        }
+
+        return data;
+    }
+
+    /**
+     * TODO
+     * Credit:
+     * https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-
+     * power-of-2
+     */
+    private static Boolean isPowerOfTwo(int x)
+    {
+        return (x != 0) && ((x & (x - 1)) == 0);
     }
 
     /**
      * Print a message in an int array to {@code System.out}
      *
      * @param message
-     *            Message in an int array
+     *            message in an int array
      */
     public static void printMessage(int[] message)
     {
@@ -244,9 +232,10 @@ public final class SECDED
 
         String dataStr = sc.next();
         dataStr = dataStr.replaceAll(" ", "");
+        int length = dataStr.length();
 
-        int[] data = new int[dataStr.length()];
-        for (int i = 0; i < dataStr.length(); i++)
+        int[] data = new int[length];
+        for (int i = length - 1; i >= 0; i--)
         {
             data[i] = Character.getNumericValue(dataStr.charAt(i));
         }
@@ -268,7 +257,7 @@ public final class SECDED
 
         System.out.println("Checking hamming code...");
         int errorLocation = checkHammingCode(message);
-        if (errorLocation < 0)
+        if (errorLocation == -1)
         {
             System.out.println("No error detected!");
         }
@@ -280,6 +269,11 @@ public final class SECDED
             System.out.print("Corrected message: ");
             printMessage(message);
         }
+
+        int[] removedParity = removeParity(message);
+
+        System.out.print("Parity removed: ");
+        printMessage(removedParity);
 
         sc.close();
     }

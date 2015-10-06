@@ -6,8 +6,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Scanner;
-import Common.SECDED;
+import Common.HammingCode;
 
 public class Client
 {
@@ -91,7 +90,7 @@ public class Client
                 data[i] = Character.getNumericValue(dataStr.charAt(i));
             }
 
-            int[] message = SECDED.encode(data);
+            int[] message = HammingCode.encode(data);
 
             client.sendMessage(message);
         }
