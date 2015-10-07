@@ -8,8 +8,6 @@ import java.net.Socket;
 
 public class Server
 {
-    public static final int PORT = 9090;
-
     private ServerSocket server;
     private int port;
 
@@ -19,22 +17,93 @@ public class Server
     }
 
     /**
-     * TODO
+     * Run a server.
+     *
+     * @param server
+     *            server object to run
+     * @throws IOException
+     *             if an I/O error occurs when opening the socket (See
+     *             {@link #start() start})
+     * @throws IOException
+     *             if an I/O error occurs while reading stream header (See
+     *             {@link #receiveMessage(Socket)
+     *             receiveMessage})
+     * @throws ClassNotFoundException
+     *             class of a serialized object cannot be found (See
+     *             {@link #receiveMessage(Socket) receiveMessage})
+     */
+    public static void run(Server server)
+            throws IOException, ClassNotFoundException
+    {
+        // Start server
+        server.start();
+
+        // Wait for client to connect
+        Socket client = server.waitForClient();
+        System.out.println("Listening to client...");
+
+        Boolean terminateSignal = false;
+        while (!terminateSignal)
+        {
+            // Receive message from client
+            int[] message = server.receiveMessage(client);
+
+            System.out.println("----------------------------------------");
+
+            if (message.length == 0)
+            {
+                System.out.println("Terminating by request.");
+                terminateSignal = true;
+                break;
+            }
+
+            System.out.print("Client:    ");
+            HammingCode.printMessage(message);
+
+            // Check message was received with no error
+            int errorLocation = HammingCode.checkHammingCode(message);
+            if (errorLocation < 0)
+            {
+                System.out.println("           No error detected!");
+            }
+            else
+            {
+                System.out.println("           Error detected at bit "
+                        + "position " + (errorLocation + 1) + "...");
+                message[errorLocation] ^= 1;
+                System.out.print("Corrected: ");
+                HammingCode.printMessage(message);
+            }
+
+            int[] data = HammingCode.removeParity(message);
+            System.out.print("Data:      ");
+            HammingCode.printMessage(data);
+
+            server.respondToClient(client, "ACK");
+        }
+    }
+
+    /**
+     * Start a server on this {@code Server}'s {@code port}.
      *
      * @throws IOException
+     *             if an I/O error occurs when opening the socket (See
+     *             {@link java.net.ServerSocket#ServerSocket(int) ServerSocket})
      */
     public void start() throws IOException
     {
         System.out.print("Starting server on port " + port + "... ");
-        server = new ServerSocket(PORT);
+        server = new ServerSocket(port);
         System.out.println("Done!");
     }
 
     /**
-     * TODO
+     * Wait for a client to connect this this {@code server}.
      *
-     * @return
+     * @return {@code client Socket}
      * @throws IOException
+     *             if an I/O error occurs when waiting for a connection (See
+     *             {@link java.net.ServerSocket#accept() ServerSocket.accept})
      */
     public Socket waitForClient() throws IOException
     {
@@ -47,12 +116,18 @@ public class Server
     }
 
     /**
-     * TODO
+     * Receive message from {@code client}
      *
      * @param client
-     * @return
+     *            client socket to get message from
+     * @return message received from {@code client}
      * @throws IOException
+     *             if an I/O error occurs while reading stream header (See
+     *             {@link java.io.ObjectInputStream#ObjectInputStream(java.io.InputStream)
+     *             ObjectInputStream})
      * @throws ClassNotFoundException
+     *             class of a serialized object cannot be found (See
+     *             {@link java.io.ObjectInputStream#readObject() readObject})
      */
     public int[] receiveMessage(Socket client)
             throws IOException, ClassNotFoundException
@@ -65,11 +140,20 @@ public class Server
     }
 
     /**
-     * TODO
+     * Send {@code message} to {@code client}
      *
      * @param client
+     *            client socket to send message to
      * @param message
+     *            message to be sent
      * @throws IOException
+     *             if an I/O error occurs (See
+     *             {@link java.io.OutputStreamWriter#OutputStreamWriter(java.io.OutputStream)
+     *             OutputStreamWriter},
+     *             {@link java.io.OutputStreamWriter#write(String)
+     *             OutputStreamWriter.write},
+     *             {@link java.io.OutputStreamWriter#flush()
+     *             OutputStreamWriter.flush})
      */
     public void respondToClient(Socket client, String message)
             throws IOException
@@ -77,7 +161,7 @@ public class Server
         OutputStreamWriter out = new OutputStreamWriter(
                 client.getOutputStream());
 
-        out.write(message + "\r\n");
+        out.write(message + System.lineSeparator());
         out.flush();
     }
 }

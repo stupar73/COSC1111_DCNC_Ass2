@@ -1,7 +1,5 @@
 package Common;
 
-import java.util.Scanner;
-
 /**
  * Utility class for Hamming code.
  * <br />
@@ -97,7 +95,12 @@ public final class HammingCode
     }
 
     /**
-     * TODO
+     * Calculates the number of parity bits that are in a message already
+     * encoded using Hamming code.
+     *
+     * @param message
+     *            an int array containing the message
+     * @return number of parity bits
      */
     private static int determineNumParityBits(int[] message)
     {
@@ -191,7 +194,8 @@ public final class HammingCode
     }
 
     /**
-     * TODO
+     * Determines whether {@code x} is a power of 2.
+     *
      * Credit:
      * https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-
      * power-of-2
