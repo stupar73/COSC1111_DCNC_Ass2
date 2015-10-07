@@ -9,8 +9,6 @@ import java.util.Scanner;
  */
 public final class HammingCode
 {
-    public static final double ERROR_CHANCE = 0.5;
-
     private HammingCode()
     {
         // Throws exception if instantiation of class is attempted
@@ -218,63 +216,44 @@ public final class HammingCode
         System.out.println();
     }
 
-    public static void main(String[] args)
+    /**
+     * Print a message in an int array with a header to {@code System.out}
+     *
+     * @param message
+     *            message in an int array
+     */
+    public static void printHeaderedMessage(int[] message)
     {
-        /*
-         * TODO This should all go in the client class, this was just for
-         * testing
-         */
+        String[] headerLine = new String[message.length];
 
-        Scanner sc = new Scanner(System.in);
-
-        // Message should be 11 bits (7 bits data, 4 bits parity)
-        System.out.print("Enter data: ");
-
-        String dataStr = sc.next();
-        dataStr = dataStr.replaceAll(" ", "");
-        int length = dataStr.length();
-
-        int[] data = new int[length];
-        for (int i = length - 1; i >= 0; i--)
+        // Create header line
+        int numParityBits = 0, numDataBits = 0;
+        for (int i = 1; i <= message.length; i++)
         {
-            data[i] = Character.getNumericValue(dataStr.charAt(i));
+            if (Math.pow(2, numParityBits) == i)
+            {
+                // Parity bit location
+                headerLine[i - 1] = "r" + (numParityBits++ + 1);
+            }
+            else
+            {
+                // Data bit location
+                headerLine[i - 1] = "d" + (numDataBits++ + 1);
+            }
         }
 
-        int[] message = encode(data);
-
-        System.out.print("Full message (with hamming parity): ");
-        printMessage(message);
-
-        // Random chance for a one-bit error
-        if (Math.random() <= ERROR_CHANCE)
+        // Print header line
+        for (int i = headerLine.length - 1; i >= 0; i--)
         {
-            // Flip a random bit
-            message[(int) (Math.random() * message.length)] ^= 1;
+            System.out.print(headerLine[i] + "  ");
         }
+        System.out.println();
 
-        System.out.print("After random error chance: ");
-        printMessage(message);
-
-        System.out.println("Checking hamming code...");
-        int errorLocation = checkHammingCode(message);
-        if (errorLocation == -1)
+        // Print data bits
+        for (int i = message.length - 1; i >= 0; i--)
         {
-            System.out.println("No error detected!");
+            System.out.print(message[i] + "   ");
         }
-        else
-        {
-            System.out.println("Error detected at bit position "
-                    + (errorLocation + 1));
-            message[errorLocation] ^= 1;
-            System.out.print("Corrected message: ");
-            printMessage(message);
-        }
-
-        int[] removedParity = removeParity(message);
-
-        System.out.print("Parity removed: ");
-        printMessage(removedParity);
-
-        sc.close();
+        System.out.println();
     }
 }

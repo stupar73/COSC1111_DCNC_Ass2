@@ -1,4 +1,4 @@
-package CS;
+package Common;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,12 +6,11 @@ import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import Common.HammingCode;
 
 public class Client
 {
-    private static final String HOSTNAME = "localhost";
-    private static final int PORT = 9090;
+    public static final String HOSTNAME = "localhost";
+    public static final int PORT = 9090;
 
     private Socket clientSocket;
     private String hostname;
@@ -42,7 +41,7 @@ public class Client
      * Sends {@code message} to the server in {@code clientSocket}
      *
      * @param message
-     *            Message to be sent
+     *            message to be sent
      * @throws IOException
      */
     public void sendMessage(int[] message) throws IOException
@@ -66,38 +65,5 @@ public class Client
                 new InputStreamReader(clientSocket.getInputStream()));
 
         return serverIn.readLine();
-    }
-
-    public static void main(String[] args)
-    {
-        try
-        {
-            Client client = new Client(HOSTNAME, PORT);
-            BufferedReader userIn = new BufferedReader(
-                    new InputStreamReader(System.in));
-
-            // Attempt to connect to server
-            client.connect();
-
-            // Get data from user and encode using Hamming code
-            System.out.print("Enter data: ");
-            String dataStr = userIn.readLine();
-            dataStr = dataStr.replaceAll(" ", "");
-
-            int[] data = new int[dataStr.length()];
-            for (int i = 0; i < dataStr.length(); i++)
-            {
-                data[i] = Character.getNumericValue(dataStr.charAt(i));
-            }
-
-            int[] message = HammingCode.encode(data);
-
-            client.sendMessage(message);
-        }
-        catch (Exception e)
-        {
-            System.out.println(e.getMessage());
-            return;
-        }
     }
 }
