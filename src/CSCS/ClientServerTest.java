@@ -6,7 +6,7 @@ import Common.Server;
 public class ClientServerTest
 {
     public static final String HOSTNAME = "localhost";
-    public static final int PORT = 9091;
+    public static final int PORT = 9092;
 
     public static void main(String[] args)
     {

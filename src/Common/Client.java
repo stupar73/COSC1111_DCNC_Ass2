@@ -3,6 +3,7 @@ package Common;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -35,9 +36,16 @@ public class Client
      *             interrupted status of the current thread is cleared when this
      *             exception is thrown (See {@link java.lang.Thread#sleep()
      *             Thread.sleep})
+     * @throws IOException
+     *             if an I/O error occurs while reading stream header (See
+     *             {@link #receiveMessage() receiveMessage})
+     * @throws ClassNotFoundException
+     *             class of a serialised object cannot be found (See
+     *             {@link #receiveMessage() receiveMessage})
      */
     public static void run(Client client)
-            throws UnknownHostException, IOException, InterruptedException
+            throws UnknownHostException, IOException, InterruptedException,
+            ClassNotFoundException
     {
         BufferedReader userIn = new BufferedReader(
                 new InputStreamReader(System.in));
@@ -82,9 +90,8 @@ public class Client
                     // Check if input contains only a sequence of 1s and 0s
                     if (thisChar != '1' && thisChar != '0')
                     {
-                        System.err.println(
-                                "Error! Input data must be a binary "
-                                        + "string");
+                        System.err.println("Error! Input data must be a binary "
+                                + "string");
                         readSuccessful = false;
                         break;
                     }
@@ -155,12 +162,11 @@ public class Client
      *             {@link java.io.ObjectOutputStream#writeObject(Object)
      *             ObjectOutputStream.writeObject})
      */
-    public void sendMessage(int[] message) throws IOException
+    public void sendMessage(Object message) throws IOException
     {
         ObjectOutputStream out = new ObjectOutputStream(
                 clientSocket.getOutputStream());
 
-        // Send int array as object
         out.writeObject(message);
     }
 
@@ -169,15 +175,19 @@ public class Client
      *
      * @return Message read from server
      * @throws IOException
-     *             if an I/O error occurs (See
-     *             {@link java.io.BufferedReader#readLine()
-     *             BufferedReader.readLine})
+     *             if an I/O error occurs while reading stream header (See
+     *             {@link java.io.ObjectInputStream#ObjectInputStream(java.io.InputStream)
+     *             ObjectInputStream})
+     * @throws ClassNotFoundException
+     *             class of a serialised object cannot be found (See
+     *             {@link java.io.ObjectInputStream#readObject()
+     *             ObjectInputStream.readObject})
      */
-    public String receiveMessage() throws IOException
+    public Object receiveMessage() throws IOException, ClassNotFoundException
     {
-        BufferedReader serverIn = new BufferedReader(
-                new InputStreamReader(clientSocket.getInputStream()));
+        ObjectInputStream serverIn = new ObjectInputStream(
+                clientSocket.getInputStream());
 
-        return serverIn.readLine();
+        return serverIn.readObject();
     }
 }

@@ -2,7 +2,7 @@ package Common;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.OutputStreamWriter;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -29,7 +29,7 @@ public class Server
      *             {@link #receiveMessage(Socket)
      *             receiveMessage})
      * @throws ClassNotFoundException
-     *             class of a serialized object cannot be found (See
+     *             class of a serialised object cannot be found (See
      *             {@link #receiveMessage(Socket) receiveMessage})
      */
     public static void run(Server server)
@@ -40,15 +40,16 @@ public class Server
 
         // Wait for client to connect
         Socket client = server.waitForClient();
-        System.out.println("Listening to client...");
 
         Boolean terminateSignal = false;
         while (!terminateSignal)
         {
-            // Receive message from client
-            int[] message = server.receiveMessage(client);
-
             System.out.println("----------------------------------------");
+            System.out.println("Listening to client...");
+            System.out.println();
+
+            // Receive message from client
+            int[] message = (int[]) server.receiveMessage(client);
 
             if (message.length == 0)
             {
@@ -79,7 +80,7 @@ public class Server
             System.out.print("Data:      ");
             HammingCode.printMessage(data);
 
-            server.respondToClient(client, "ACK");
+            server.sendMessage(client, "ACK");
         }
     }
 
@@ -129,14 +130,12 @@ public class Server
      *             class of a serialized object cannot be found (See
      *             {@link java.io.ObjectInputStream#readObject() readObject})
      */
-    public int[] receiveMessage(Socket client)
+    public Object receiveMessage(Socket client)
             throws IOException, ClassNotFoundException
     {
         ObjectInputStream in = new ObjectInputStream(client.getInputStream());
 
-        int[] message = (int[]) in.readObject();
-
-        return message;
+        return in.readObject();
     }
 
     /**
@@ -155,13 +154,13 @@ public class Server
      *             {@link java.io.OutputStreamWriter#flush()
      *             OutputStreamWriter.flush})
      */
-    public void respondToClient(Socket client, String message)
+    public void sendMessage(Socket client, Object message)
             throws IOException
     {
-        OutputStreamWriter out = new OutputStreamWriter(
+        ObjectOutputStream out = new ObjectOutputStream(
                 client.getOutputStream());
 
-        out.write(message + System.lineSeparator());
+        out.writeObject(message);
         out.flush();
     }
 }
