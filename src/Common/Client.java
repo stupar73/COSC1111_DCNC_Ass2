@@ -89,7 +89,7 @@ public class Client
                 break;
             }
 
-            HammingCode.printMessage(data);
+            System.out.println();
 
             int[] message = HammingCode.encode(data);
             HammingCode.printHeaderedMessage(message);
