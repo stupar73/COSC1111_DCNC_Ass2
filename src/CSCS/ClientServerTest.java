@@ -14,7 +14,8 @@ public class ClientServerTest
         {
             // Try to connect to a server as a client
             Client client = new Client(HOSTNAME, PORT);
-            Client.run(client);
+            client.connect();
+            client.runAsSender();
         }
         catch (Exception e)
         {

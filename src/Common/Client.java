@@ -21,37 +21,22 @@ public class Client
     }
 
     /**
-     * Run a client.
+     * Run client as a sender.
      *
-     * @param client
-     *            client to be run
-     * @throws IOException
-     *             if an I/O error occurs when creating the socket (See
-     *             {@link #connect() connect})
-     * @throws UnknownHostException
-     *             if the IP address of the host could not be determined (See
-     *             {@link #connect() connect})
      * @throws InterruptedException
-     *             if any thread has interrupted the current thread. The
-     *             interrupted status of the current thread is cleared when this
-     *             exception is thrown (See {@link java.lang.Thread#sleep()
-     *             Thread.sleep})
+     *             see {@link java.lang.Thread#sleep() Thread.sleep}
      * @throws IOException
-     *             if an I/O error occurs while reading stream header (See
-     *             {@link #receiveMessage() receiveMessage})
+     *             see {@link java.io.BufferedReader#readLine
+     *             BufferedReader.readLine}, {@link #sendMessage(Object)
+     *             sendMessage}, {@link #receiveMessage() receiveMesage}
      * @throws ClassNotFoundException
-     *             class of a serialised object cannot be found (See
-     *             {@link #receiveMessage() receiveMessage})
+     *             see {@link #receiveMessage() receiveMessage}
      */
-    public static void run(Client client)
-            throws UnknownHostException, IOException, InterruptedException,
-            ClassNotFoundException
+    public void runAsSender()
+            throws InterruptedException, IOException, ClassNotFoundException
     {
         BufferedReader userIn = new BufferedReader(
                 new InputStreamReader(System.in));
-
-        // Attempt to connect to server
-        client.connect();
 
         Boolean terminateSignal = false;
         while (!terminateSignal)
@@ -73,7 +58,7 @@ public class Client
                 if (inputStr.equalsIgnoreCase("EXIT") || inputStr.isEmpty())
                 {
                     // Send empty array to signal server to exit
-                    client.sendMessage(new int[0]);
+                    sendMessage(new int[0]);
                     System.out.println("Server terminated.");
                     terminateSignal = true;
                     break;
@@ -115,8 +100,8 @@ public class Client
             System.out.println("1. Correct message");
             System.out.print("Sending:  ");
             HammingCode.printMessage(message);
-            client.sendMessage(message);
-            System.out.println("Response: " + client.receiveMessage());
+            sendMessage(message);
+            System.out.println("Response: " + receiveMessage());
             System.out.println();
 
             // Sending message with one-bit error
@@ -124,8 +109,62 @@ public class Client
             message[(int) (Math.random() * message.length)] ^= 1;
             System.out.print("Sending:  ");
             HammingCode.printMessage(message);
-            client.sendMessage(message);
-            System.out.println("Response: " + client.receiveMessage());
+            sendMessage(message);
+            System.out.println("Response: " + receiveMessage());
+        }
+    }
+
+    /**
+     * Run client as a receiver.
+     *
+     * @throws IOException
+     *             see {@link #receiveMessage() receiveMesage},
+     *             {@link #sendMessage(Object) sendMessage}
+     * @throws ClassNotFoundException
+     *             see {@link #receiveMessage() receiveMessage}
+     */
+    public void runAsReceiver() throws IOException, ClassNotFoundException
+    {
+        Boolean terminateSignal = false;
+        while (!terminateSignal)
+        {
+            System.out.println("----------------------------------------");
+            System.out.println("Listening to server...");
+            System.out.println();
+
+            // Receive message from server
+            int[] message = (int[]) receiveMessage();
+
+            if (message.length == 0)
+            {
+                System.out.println("Connection closed by sender.");
+                terminateSignal = true;
+                break;
+            }
+
+            System.out.print("Received:  ");
+            HammingCode.printMessage(message);
+
+            // Check message was received with no error
+            int errorLocation = HammingCode.checkHammingCode(message);
+            if (errorLocation < 0)
+            {
+                System.out.println("           No error detected!");
+            }
+            else
+            {
+                System.out.println("           Error detected at bit "
+                        + "position " + (errorLocation + 1) + "...");
+                message[errorLocation] ^= 1;
+                System.out.print("Corrected: ");
+                HammingCode.printMessage(message);
+            }
+
+            int[] data = HammingCode.removeParity(message);
+            System.out.print("Data:      ");
+            HammingCode.printMessage(data);
+
+            sendMessage("ACK");
         }
     }
 
@@ -134,11 +173,11 @@ public class Client
      * this Client
      *
      * @throws UnknownHostException
-     *             if the IP address of the host could not be determined (See
-     *             {@link java.net.Socket#Socket(java.lang.String, int) Socket})
+     *             see {@link java.net.Socket#Socket(java.lang.String, int)
+     *             Socket}
      * @throws IOException
-     *             if an I/O error occurs when creating the socket (See
-     *             {@link java.net.Socket#Socket(java.lang.String, int) Socket})
+     *             see {@link java.net.Socket#Socket(java.lang.String, int)
+     *             Socket}
      */
     public void connect() throws UnknownHostException, IOException
     {
@@ -154,11 +193,10 @@ public class Client
      * @param message
      *            message to be sent
      * @throws IOException
-     *             if an I/O error occurs while writing stream header (See
+     *             see
      *             {@link java.io.ObjectOutputStream#ObjectOutputStream(java.io.OutputStream)
-     *             ObjectOutputStream})
-     * @throws IOException
-     *             any exception thrown by the underlying OutputStream (See
+     *             ObjectOutputStream}, {@link java.net.Socket#getOutputStream()
+     *             Socket.getOutputStream},
      *             {@link java.io.ObjectOutputStream#writeObject(Object)
      *             ObjectOutputStream.writeObject})
      */
@@ -175,12 +213,14 @@ public class Client
      *
      * @return Message read from server
      * @throws IOException
-     *             if an I/O error occurs while reading stream header (See
+     *             see
      *             {@link java.io.ObjectInputStream#ObjectInputStream(java.io.InputStream)
-     *             ObjectInputStream})
-     * @throws ClassNotFoundException
-     *             class of a serialised object cannot be found (See
+     *             ObjectInputStream}, {@link java.net.Socket#getInputStream()
+     *             Socket.getInputStream},
      *             {@link java.io.ObjectInputStream#readObject()
+     *             ObjectInputStream.readObject}
+     * @throws ClassNotFoundException
+     *             see {@link java.io.ObjectInputStream#readObject()
      *             ObjectInputStream.readObject})
      */
     public Object receiveMessage() throws IOException, ClassNotFoundException

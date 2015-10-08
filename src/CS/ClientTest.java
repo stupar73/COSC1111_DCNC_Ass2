@@ -13,7 +13,8 @@ public class ClientTest
 
         try
         {
-            Client.run(client);
+            client.connect();
+            client.runAsSender();
         }
         catch (Exception e)
         {

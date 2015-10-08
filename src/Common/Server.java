@@ -22,15 +22,12 @@ public class Server
      * @param server
      *            server object to run
      * @throws IOException
-     *             if an I/O error occurs when opening the socket (See
-     *             {@link #start() start})
-     * @throws IOException
-     *             if an I/O error occurs while reading stream header (See
-     *             {@link #receiveMessage(Socket)
-     *             receiveMessage})
+     *             see {@link #start() start}, {@link #waitForClient(String)
+     *             waitForClient}, {@link #receiveMessage(Socket)
+     *             receiveMessage}, {@link #sendMessage(Socket, Object)
+     *             sendMessage}
      * @throws ClassNotFoundException
-     *             class of a serialised object cannot be found (See
-     *             {@link #receiveMessage(Socket) receiveMessage})
+     *             see {@link #receiveMessage(Socket) receiveMessage}
      */
     public static void run(Server server)
             throws IOException, ClassNotFoundException
@@ -39,7 +36,7 @@ public class Server
         server.start();
 
         // Wait for client to connect
-        Socket client = server.waitForClient();
+        Socket client = server.waitForClient("client");
 
         Boolean terminateSignal = false;
         while (!terminateSignal)
@@ -88,8 +85,8 @@ public class Server
      * Start a server on this {@code Server}'s {@code port}.
      *
      * @throws IOException
-     *             if an I/O error occurs when opening the socket (See
-     *             {@link java.net.ServerSocket#ServerSocket(int) ServerSocket})
+     *             see {@link java.net.ServerSocket#ServerSocket(int)
+     *             ServerSocket}
      */
     public void start() throws IOException
     {
@@ -101,15 +98,18 @@ public class Server
     /**
      * Wait for a client to connect this this {@code server}.
      *
+     * @param clientType
+     *            type of client expected (e.g. "client",
+     *            "sending client", "receiving client", etc.)
      * @return {@code client Socket}
      * @throws IOException
-     *             if an I/O error occurs when waiting for a connection (See
-     *             {@link java.net.ServerSocket#accept() ServerSocket.accept})
+     *             see {@link java.net.ServerSocket#accept()
+     *             ServerSocket.accept}
      */
-    public Socket waitForClient() throws IOException
+    public Socket waitForClient(String clientType) throws IOException
     {
         // Block until client connects
-        System.out.print("Waiting for client... ");
+        System.out.print("Waiting for " + clientType + "... ");
         Socket client = server.accept();
         System.out.println("Client connected!");
 
@@ -123,12 +123,14 @@ public class Server
      *            client socket to get message from
      * @return message received from {@code client}
      * @throws IOException
-     *             if an I/O error occurs while reading stream header (See
+     *             see
      *             {@link java.io.ObjectInputStream#ObjectInputStream(java.io.InputStream)
-     *             ObjectInputStream})
+     *             ObjectInputStream}, {@link java.net.Socket#getInputStream()
+     *             Socket.getInputStream},
+     *             {@link java.io.ObjectInputStream#readObject()
+     *             ObjectInputStream.readObject}
      * @throws ClassNotFoundException
-     *             class of a serialized object cannot be found (See
-     *             {@link java.io.ObjectInputStream#readObject() readObject})
+     *             see {@link java.io.ObjectInputStream#readObject() readObject}
      */
     public Object receiveMessage(Socket client)
             throws IOException, ClassNotFoundException
@@ -146,13 +148,14 @@ public class Server
      * @param message
      *            message to be sent
      * @throws IOException
-     *             if an I/O error occurs (See
-     *             {@link java.io.OutputStreamWriter#OutputStreamWriter(java.io.OutputStream)
-     *             OutputStreamWriter},
-     *             {@link java.io.OutputStreamWriter#write(String)
-     *             OutputStreamWriter.write},
-     *             {@link java.io.OutputStreamWriter#flush()
-     *             OutputStreamWriter.flush})
+     *             see
+     *             {@link java.io.ObjectOutputStream#ObjectOutputStream(java.io.OutputStream)
+     *             ObjectOutputStream}, {@link java.net.Socket#getOutputStream()
+     *             Socket.getOutputStream},
+     *             {@link java.io.ObjectOutputStream#writeObject(Object)
+     *             ObjectOutputStream.writeObject},
+     *             {@link java.io.ObjectOutputStream#flush()
+     *             ObjectOutputStream.flush}
      */
     public void sendMessage(Socket client, Object message)
             throws IOException
