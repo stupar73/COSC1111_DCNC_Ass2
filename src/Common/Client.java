@@ -160,7 +160,7 @@ public class Client
                 HammingCode.printMessage(message);
             }
 
-            int[] data = HammingCode.removeParity(message);
+            int[] data = HammingCode.removeParityBits(message);
             System.out.print("Data:      ");
             HammingCode.printMessage(data);
 

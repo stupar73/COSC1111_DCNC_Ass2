@@ -176,7 +176,7 @@ public final class HammingCode
      *            message in an int array containing both data and parity bits
      * @return data contained in {@code message} encoded using Hamming code
      */
-    public static int[] removeParity(int[] message)
+    public static int[] removeParityBits(int[] message)
     {
         int parityCount = determineNumParityBits(message);
         int[] data = new int[message.length - parityCount];
