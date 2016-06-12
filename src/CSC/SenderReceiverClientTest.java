@@ -31,7 +31,7 @@ public class SenderReceiverClientTest
             }
             else
             {
-                throw new Exception("Unknown reponse from server");
+                throw new Exception("Unknown response from server");
             }
         }
         catch (Exception e)
